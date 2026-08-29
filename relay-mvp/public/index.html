@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Relay turns product catalogs into compliant knowledge layers that AI shopping agents can understand and cite." />
+    <meta name="theme-color" content="#f3f1eb" />
+    <title>Relay — Product knowledge for AI commerce</title>
+    <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css?v=1.0.2" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="#overview" aria-label="Relay home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>relay</span>
+        </a>
+
+        <div class="workspace-switcher">
+          <span class="workspace-avatar">N</span>
+          <span class="workspace-copy"><strong>Northstar</strong><small>Production</small></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4" /></svg>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="overview">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+            <span>Start here</span>
+          </button>
+          <button class="nav-item" data-view="catalog">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5 12 4l7 3.5v9L12 20l-7-3.5z"/><path d="m5 7.5 7 3.5 7-3.5M12 11v9"/></svg>
+            <span>Products</span><span class="nav-count" id="navProductCount">4</span>
+          </button>
+          <button class="nav-item" data-view="query-lab">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v5l-5.5 9.3A2.4 2.4 0 0 0 6.6 21h10.8a2.4 2.4 0 0 0 2.1-3.7L14 8V3"/><path d="M7.5 15h9"/></svg>
+            <span>Test with AI</span><span class="live-dot">Demo</span>
+          </button>
+          <button class="nav-item" data-view="install">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg>
+            <span>Publish</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-section">
+          <span class="sidebar-label">Workspace</span>
+          <button class="nav-item muted" data-action="show-toast" data-message="Team workflow is ready for your identity provider.">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 4.5a3 3 0 0 1 0 5.8M16.5 15a5 5 0 0 1 4 5"/></svg>
+            <span>Team & approvals</span>
+          </button>
+          <button class="nav-item muted" data-action="show-toast" data-message="Connectors are available in the production integration plan.">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+            <span>Settings</span>
+          </button>
+        </div>
+
+        <div class="sidebar-footer">
+          <span class="status-orb"><i></i></span>
+          <span><strong>Knowledge layer live</strong><small>Synced 6 min ago</small></span>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <button class="mobile-menu" aria-label="Open navigation">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <div class="breadcrumbs"><span>Northstar Athletics</span><i>/</i><strong id="currentViewLabel">Start here</strong></div>
+          <div class="top-actions">
+            <button class="icon-button" aria-label="Search" id="focusSearchButton">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+            </button>
+            <button class="icon-button notification-button" aria-label="Notifications" data-action="show-toast" data-message="Everything is up to date.">
+              <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i>
+            </button>
+            <button class="avatar-button" aria-label="Open account menu">MC</button>
+          </div>
+        </header>
+
+        <section class="view active" id="view-overview" data-title="Start here">
+          <div class="simple-hero">
+            <div class="simple-hero-copy">
+              <span class="eyebrow">Start here</span>
+              <h1>Make your products easier for AI to recommend.</h1>
+              <p>Upload your catalogue. Relay checks what is missing, tests real shopper questions, and prepares accurate product data for AI platforms.</p>
+              <button class="button primary hero-button" data-action="open-upload">
+                <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>
+                Upload my catalogue
+              </button>
+              <span class="hero-help">Have no file yet? The demo catalogue is already loaded.</span>
+            </div>
+            <div class="simple-status-card">
+              <div class="status-card-head"><span class="pulse-dot"></span><strong>Demo catalogue ready</strong></div>
+              <div class="simple-score-row">
+                <div class="score-ring" id="scoreRing"><div><strong id="overallScore">82</strong><small>/100</small></div></div>
+                <div><span>AI-readiness score</span><strong>Good starting point</strong><small>Relay found a few details you can improve.</small></div>
+              </div>
+              <div class="simple-coverage"><span><strong id="enrichedCount">4</strong> <i id="catalogCoverage">of 4</i> products checked</span><div class="progress-track"><i id="catalogProgress" style="width:100%"></i></div></div>
+            </div>
+          </div>
+
+          <section class="journey-panel" aria-labelledby="journeyTitle">
+            <div class="journey-head"><div><span class="eyebrow">Your workflow</span><h2 id="journeyTitle">Just follow these three steps.</h2></div><span>About 5 minutes for the demo</span></div>
+            <div class="journey-grid">
+              <article class="journey-step current">
+                <span class="journey-number">1</span>
+                <div class="journey-icon"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg></div>
+                <span class="step-label">First</span><h3>Upload your catalogue</h3>
+                <p>Use the CSV or JSON file you already have. Relay organizes the fields automatically.</p>
+                <button class="step-button" data-action="open-upload">Upload catalogue <span>→</span></button>
+              </article>
+              <article class="journey-step">
+                <span class="journey-number">2</span>
+                <div class="journey-icon"><svg viewBox="0 0 24 24"><path d="M5 7.5 12 4l7 3.5v9L12 20l-7-3.5z"/><path d="m5 7.5 7 3.5 7-3.5M12 11v9"/></svg></div>
+                <span class="step-label">Next</span><h3>Review your products</h3>
+                <p>See each product’s score, missing information, approved facts, and supporting evidence.</p>
+                <button class="step-button" data-view-target="catalog">Review 4 products <span>→</span></button>
+              </article>
+              <article class="journey-step">
+                <span class="journey-number">3</span>
+                <div class="journey-icon"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.3A2.4 2.4 0 0 0 6.6 21h10.8a2.4 2.4 0 0 0 2.1-3.7L14 8V3"/></svg></div>
+                <span class="step-label">Finally</span><h3>Test and publish</h3>
+                <p>Ask a realistic shopping question, check the recommendation, then generate your feeds.</p>
+                <button class="step-button" data-view-target="query-lab">Test with AI <span>→</span></button>
+              </article>
+            </div>
+          </section>
+
+          <div class="simple-explainer-grid">
+            <article class="example-card">
+              <span class="eyebrow">What Relay tests</span>
+              <div class="example-question"><span>Shopper asks</span><p>“I need lightweight half-marathon shoes for Singapore under S$200.”</p></div>
+              <div class="example-arrow">↓</div>
+              <div class="example-answer"><span>Relay finds</span><div><strong>AeroSwift Tempo 2</strong><small>S$179 · 228 g · Humid-weather ready</small></div><b>94% match</b></div>
+              <button class="wide-quiet-button" data-view-target="query-lab">Try this example <span>→</span></button>
+            </article>
+            <article class="plain-language-card">
+              <span class="eyebrow light">The important rule</span>
+              <h2>Nothing secret. Nothing invented.</h2>
+              <p>Relay organizes product facts for machines, but the same important claims must also appear on the normal product page.</p>
+              <div><span>✓</span> Visible to shoppers</div><div><span>✓</span> Backed by brand evidence</div><div><span>✓</span> Approved before publishing</div>
+              <button data-view-target="install">See what gets published <span>→</span></button>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-catalog" data-title="Products">
+          <div class="page-head compact">
+            <div><span class="eyebrow">Step 2 of 3</span><h1>Review your products</h1><p>Click a product to see its facts, evidence, AI-readiness score, and missing information.</p></div>
+            <button class="button primary" data-action="open-upload"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Import catalog</button>
+          </div>
+          <div class="catalog-toolbar">
+            <label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg><input id="catalogSearch" type="search" placeholder="Search products, features, use cases…" /></label>
+            <div class="filter-group"><button class="filter-button active" data-filter="all">All <span id="allCount">4</span></button><button class="filter-button" data-filter="ready">Ready</button><button class="filter-button" data-filter="needs-work">Needs work</button></div>
+            <button class="button secondary compact-button" id="exportCatalogButton"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Export</button>
+          </div>
+          <div class="table-wrap">
+            <table class="catalog-table">
+              <thead><tr><th>Product</th><th>AI readiness</th><th>Context</th><th>Evidence</th><th>Updated</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="catalogTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="catalogEmpty" hidden><span>⌕</span><strong>No products found</strong><p>Try a different search or filter.</p></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-query-lab" data-title="Test with AI">
+          <div class="page-head compact lab-head">
+            <div><span class="eyebrow">Step 3 of 3</span><h1>Test a shopper question</h1><p>Type what a customer might ask. Relay will show which product fits and the facts used to decide.</p></div>
+            <span class="safe-simulation"><svg viewBox="0 0 24 24"><path d="m12 3 7 3v5c0 4.6-2.8 7.7-7 10-4.2-2.3-7-5.4-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>Grounded simulation</span>
+          </div>
+          <div class="lab-layout">
+            <div class="lab-input-panel">
+              <span class="field-label">Shopper intent</span>
+              <div class="query-compose">
+                <textarea id="queryInput" rows="5" placeholder="Describe what the shopper needs…">I’m training for a half marathon in Singapore’s humid weather and need lightweight shoes under S$200.</textarea>
+                <div class="compose-footer"><span><kbd>⌘</kbd><kbd>↵</kbd> to run</span><button class="button primary" id="runQueryButton">Run simulation <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></div>
+              </div>
+              <div class="example-block"><span>Try an example</span><div>
+                <button data-example="I’m a new runner and want comfortable everyday shoes under S$160.">Beginner comfort</button>
+                <button data-example="I need grippy shoes for wet tropical trails, size 10.">Wet trails</button>
+                <button data-example="Find a lightweight, sustainable race shoe for a half marathon.">Sustainable racing</button>
+              </div></div>
+              <div class="parsed-card" id="parsedCard">
+                <div class="parsed-head"><span><i></i> Intent parsed</span><small id="parseTime">12 ms</small></div>
+                <div class="parsed-chips" id="parsedChips"></div>
+              </div>
+              <div class="grounding-note"><svg viewBox="0 0 24 24"><path d="m12 3 7 3v5c0 4.6-2.8 7.7-7 10-4.2-2.3-7-5.4-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg><div><strong>No invented claims</strong><p>Results are restricted to facts in your catalog. Every reason includes its source field.</p></div></div>
+            </div>
+            <div class="results-panel" aria-live="polite">
+              <div class="results-head"><div><span class="eyebrow">Ranked products</span><h2>Recommendation preview</h2></div><span id="resultCount">3 candidates</span></div>
+              <div class="loading-results" id="loadingResults" hidden><i></i><i></i><i></i></div>
+              <div id="queryResults"></div>
+              <div class="result-disclaimer"><span>i</span><p><strong>Why this matters:</strong> Relay exposes decision-useful facts and provenance. The shopping agent retains control of its final recommendation.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-install" data-title="Publish">
+          <div class="page-head compact install-head">
+            <div><span class="eyebrow">Publish safely</span><h1>Publish the approved product data</h1><p>Your technical team gets structured data and feeds that match what customers can see.</p></div>
+            <span class="deployment-status"><i></i> Preview environment</span>
+          </div>
+          <div class="install-grid">
+            <div class="install-main">
+              <article class="panel install-step complete">
+                <div class="step-index">1</div><div class="step-content"><div class="install-title"><div><span class="eyebrow">Required</span><h2>Publish JSON-LD on product pages</h2></div><span class="complete-pill">✓ Generated</span></div><p>Add standards-based Product markup that mirrors visible titles, claims, price and availability.</p>
+                  <div class="code-block"><div class="code-head"><span>product-page.html</span><button data-copy-target="jsonLdSnippet">Copy</button></div><pre id="jsonLdSnippet"><code>&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "AeroSwift Tempo 2",
+  "sku": "NS-RN-204",
+  "description": "A lightweight road trainer…",
+  "offers": { "@type": "Offer", "price": 179,
+    "priceCurrency": "SGD", "availability": "https://schema.org/InStock" }
+}
+&lt;/script&gt;</code></pre></div>
+                  <button class="text-button preview-product-button" data-product-id="NS-RN-204">Preview full markup <span>→</span></button>
+                </div>
+              </article>
+              <article class="panel install-step complete">
+                <div class="step-index">2</div><div class="step-content"><div class="install-title"><div><span class="eyebrow">Recommended</span><h2>Expose compatible product feeds</h2></div><span class="complete-pill">✓ Live</span></div><p>Publish a neutral agent feed, plus a flat adapter aligned to OpenAI’s current Agentic Commerce product fields.</p>
+                  <div class="endpoint-row"><span class="method">GET</span><code id="feedUrl">/.well-known/agent-products.json</code><button data-copy-target="feedUrl" aria-label="Copy feed URL"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div>
+                  <div class="endpoint-row adapter-row"><span class="method openai">OpenAI</span><code id="openAiFeedUrl">/feeds/openai-products-preview.json</code><button data-copy-target="openAiFeedUrl" aria-label="Copy OpenAI adapter URL"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div>
+                  <a class="text-button" href="/feeds/openai-products-preview.json" target="_blank">Open OpenAI-aligned preview <span>↗</span></a>
+                </div>
+              </article>
+              <article class="panel install-step">
+                <div class="step-index">3</div><div class="step-content"><div class="install-title"><div><span class="eyebrow">Optional</span><h2>Enable permissioned product queries</h2></div><span class="status-pill">Available</span></div><p>Let approved agent partners retrieve current suitability, stock and supporting evidence through your gateway.</p>
+                  <div class="endpoint-row"><span class="method post">POST</span><code id="apiUrl">/api/simulate</code><button data-copy-target="apiUrl" aria-label="Copy API endpoint"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div>
+                  <button class="button secondary compact-button" data-view-target="query-lab">Test endpoint</button>
+                </div>
+              </article>
+            </div>
+            <aside class="install-aside">
+              <article class="panel compliance-card"><span class="eyebrow">Trust checklist</span><h2>Built for transparent discovery</h2><div class="check-list">
+                <div><span>✓</span><p><strong>Visible-content parity</strong><small>Structured claims match shopper-facing copy.</small></p></div>
+                <div><span>✓</span><p><strong>Claim provenance</strong><small>Evidence and source fields travel together.</small></p></div>
+                <div><span>✓</span><p><strong>Canonical identity</strong><small>Every item resolves to one product URL and SKU.</small></p></div>
+                <div><span>✓</span><p><strong>Freshness controls</strong><small>Modified timestamps and availability stay current.</small></p></div>
+                <div><span>✓</span><p><strong>No hidden instructions</strong><small>The layer contains facts, not agent manipulation.</small></p></div>
+              </div><button class="wide-quiet-button" id="runValidationButton">Run validation again <span>↻</span></button></article>
+              <article class="support-card"><span class="support-icon"><svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/><path d="M8.5 10a3.5 3.5 0 1 1 5.5 2.9c-1 .7-2 1.1-2 2.6M12 18v.1"/></svg></span><h3>Integration blueprint</h3><p>See the production path for PIM sync, authentication, approvals and monitoring.</p><button id="downloadBlueprintButton">Download README <span>→</span></button></article>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="uploadModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+        <button class="modal-close" data-action="close-upload" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        <span class="modal-icon"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg></span>
+        <span class="eyebrow">Catalog importer</span><h2 id="uploadTitle">Bring your product facts.</h2><p>Upload JSON or CSV. Relay maps fields, validates claims, and shows every transformation before publishing.</p>
+        <label class="drop-zone" id="dropZone"><input type="file" id="catalogFile" accept=".json,.csv,application/json,text/csv" /><svg viewBox="0 0 24 24"><path d="M7 18a4.6 4.6 0 1 1 .8-9.1A6 6 0 0 1 19.5 11a3.5 3.5 0 0 1-.5 7H7Z"/><path d="m9 13 3-3 3 3M12 10v7"/></svg><strong>Drop a catalog here</strong><span>or click to choose a JSON / CSV file up to 2 MB</span></label>
+        <div class="modal-separator"><span>or</span></div>
+        <button class="button secondary full-button" id="loadDemoButton">Use the Northstar demo catalog</button>
+        <div class="privacy-note"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Uploads are processed in this demo session and are not sent to a third-party model.</div>
+      </div>
+    </div>
+
+    <aside class="product-drawer" id="productDrawer" aria-hidden="true">
+      <div class="drawer-head"><div><span class="eyebrow">Product profile</span><strong id="drawerSku">—</strong></div><button id="closeDrawerButton" aria-label="Close product"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <div id="drawerContent"></div>
+    </aside>
+    <div class="drawer-scrim" id="drawerScrim" hidden></div>
+
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+    <script type="module" src="/app.js?v=1.0.2"></script>
+  </body>
+</html>

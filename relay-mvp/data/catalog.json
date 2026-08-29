@@ -1,0 +1,116 @@
+{
+  "brand": {
+    "name": "Northstar Athletics",
+    "domain": "northstar.example",
+    "currency": "SGD",
+    "country": "SG",
+    "lastSynced": "2026-08-29T09:42:00.000Z"
+  },
+  "products": [
+    {
+      "id": "NS-RN-204",
+      "name": "AeroSwift Tempo 2",
+      "category": "Road running shoes",
+      "price": 179,
+      "currency": "SGD",
+      "availability": "InStock",
+      "url": "/products/aeroswift-tempo-2",
+      "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
+      "color": "Volt coral",
+      "sizes": ["7", "8", "9", "10", "11", "12"],
+      "weightGrams": 228,
+      "heelDropMm": 8,
+      "materials": ["Engineered mesh upper", "Recycled polyester laces", "Nitrogen-infused foam"],
+      "features": ["High-airflow mesh", "Fast-drying liner", "Responsive foam", "Wet-grip rubber"],
+      "useCases": ["Half-marathon training", "Tempo runs", "Humid weather", "Road running"],
+      "personas": ["Intermediate runners", "Hot-climate runners", "Runners seeking a lightweight daily trainer"],
+      "description": "A lightweight road trainer tuned for faster sessions in warm, humid conditions. The breathable mesh upper, fast-drying liner and wet-grip outsole keep daily training comfortable when the forecast turns tropical.",
+      "proof": [
+        {"claim": "228 g in men's US 9", "source": "Product specification sheet v4", "verified": true},
+        {"claim": "Contains 32% recycled upper material by weight", "source": "Materials declaration 2026-04", "verified": true},
+        {"claim": "Wet-grip rubber outsole", "source": "Component bill of materials", "verified": true}
+      ],
+      "sustainability": "The upper contains 32% recycled material by weight. Packaging is made with 90% recycled paper.",
+      "care": "Air dry after use. Do not machine wash.",
+      "updatedAt": "2026-08-24T10:00:00.000Z"
+    },
+    {
+      "id": "NS-RN-188",
+      "name": "Cloudline Daily",
+      "category": "Road running shoes",
+      "price": 149,
+      "currency": "SGD",
+      "availability": "InStock",
+      "url": "/products/cloudline-daily",
+      "image": "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=900&q=80",
+      "color": "Sandstone",
+      "sizes": ["6", "7", "8", "9", "10", "11"],
+      "weightGrams": 264,
+      "heelDropMm": 10,
+      "materials": ["Jacquard mesh", "EVA blend foam", "Carbon rubber"],
+      "features": ["Plush cushioning", "Stable heel platform", "Breathable upper", "Durable outsole"],
+      "useCases": ["Easy runs", "Walking", "Road running", "Beginner training plans"],
+      "personas": ["New runners", "Comfort-first runners", "Everyday walkers"],
+      "description": "A dependable everyday road shoe with soft cushioning and a broad, stable landing platform. Best for easy miles, run-walk plans and all-day comfort.",
+      "proof": [
+        {"claim": "264 g in men's US 9", "source": "Product specification sheet v3", "verified": true},
+        {"claim": "10 mm heel-to-toe drop", "source": "Product specification sheet v3", "verified": true}
+      ],
+      "sustainability": "Ships in a box made with 85% recycled paper.",
+      "care": "Wipe clean with a damp cloth and air dry.",
+      "updatedAt": "2026-08-20T10:00:00.000Z"
+    },
+    {
+      "id": "NS-RN-231",
+      "name": "Monsoon Grip Trail",
+      "category": "Trail running shoes",
+      "price": 209,
+      "currency": "SGD",
+      "availability": "LowStock",
+      "url": "/products/monsoon-grip-trail",
+      "image": "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=900&q=80",
+      "color": "Forest ink",
+      "sizes": ["8", "9", "10", "11", "12"],
+      "weightGrams": 286,
+      "heelDropMm": 6,
+      "materials": ["Drainable ripstop mesh", "TPU toe guard", "High-traction rubber"],
+      "features": ["5 mm lugs", "Rapid drainage", "Toe protection", "Wet-trail traction"],
+      "useCases": ["Technical trails", "Wet weather", "Hiking", "Trail races"],
+      "personas": ["Trail runners", "Wet-weather hikers"],
+      "description": "A protective trail shoe built to drain quickly and bite into wet ground. Deep lugs and a reinforced toe suit technical routes better than road sessions.",
+      "proof": [
+        {"claim": "5 mm multidirectional lugs", "source": "Outsole technical drawing", "verified": true},
+        {"claim": "Drain ports in midsole sidewall", "source": "Product specification sheet v2", "verified": true}
+      ],
+      "sustainability": "Laces contain 100% recycled polyester.",
+      "care": "Remove insoles, rinse mud with cool water and air dry.",
+      "updatedAt": "2026-08-18T10:00:00.000Z"
+    },
+    {
+      "id": "NS-RN-165",
+      "name": "Carbon Arc Elite",
+      "category": "Race-day running shoes",
+      "price": 299,
+      "currency": "SGD",
+      "availability": "InStock",
+      "url": "/products/carbon-arc-elite",
+      "image": "https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=900&q=80",
+      "color": "Ice blue",
+      "sizes": ["7", "8", "9", "10", "11"],
+      "weightGrams": 196,
+      "heelDropMm": 8,
+      "materials": ["Ultralight knit", "PEBA foam", "Carbon-fibre plate"],
+      "features": ["Carbon plate", "High energy return", "Minimal upper", "Race geometry"],
+      "useCases": ["Road racing", "Marathon", "Half marathon", "Personal best attempts"],
+      "personas": ["Experienced racers", "Performance-focused runners"],
+      "description": "An ultralight plated racer designed for efficient speed over long road races. Built for race day rather than everyday mileage.",
+      "proof": [
+        {"claim": "196 g in men's US 9", "source": "Product specification sheet v5", "verified": true},
+        {"claim": "Full-length carbon-fibre plate", "source": "Component bill of materials", "verified": true}
+      ],
+      "sustainability": "Reusable drawstring race bag replaces a second internal shoe box.",
+      "care": "Spot clean only. Air dry away from direct heat.",
+      "updatedAt": "2026-08-27T10:00:00.000Z"
+    }
+  ]
+}
