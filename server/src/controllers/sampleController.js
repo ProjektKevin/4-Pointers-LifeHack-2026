@@ -2,7 +2,8 @@ import * as sampleModel from '../models/sampleModel.js';
 
 export const getSampleData = async (req, res) => {
   try {
-    if (!req.params.sampleId) {
+    const { sampleId } = req.params;
+    if (!sampleId) {
       console.log('Missing parameters in request');
       res.status(400).json({ error: 'Bad Request: Missing parameters' });
       return;

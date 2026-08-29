@@ -9,7 +9,7 @@ function NotFoundPage() {
       <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
       <Button
         onClick={() => navigate("/")}
-        className="bg-black text-white hover:bg-grey-800"
+        className="bg-black text-white hover:bg-gray-800"
       >
         Go Back Home
       </Button>
