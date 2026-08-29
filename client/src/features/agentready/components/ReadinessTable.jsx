@@ -14,7 +14,7 @@ export default function ReadinessTable() {
 
   const openProduct = (id) => {
     selectProduct(id);
-    navigate("/agentready/catalog");
+    navigate("/catalog");
   };
 
   return (
@@ -24,7 +24,7 @@ export default function ReadinessTable() {
           <div className="panel-eyebrow">CATALOG HEALTH</div>
           <h2>Readiness by product</h2>
         </div>
-        <button className="text-button" onClick={() => navigate("/agentready/catalog")}>View catalog <span>→</span></button>
+        <button className="text-button" onClick={() => navigate("/catalog")}>View catalog <span>→</span></button>
       </div>
       <div className="readiness-table-wrap">
         <table className="readiness-table">

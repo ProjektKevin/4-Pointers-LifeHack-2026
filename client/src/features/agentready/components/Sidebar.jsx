@@ -1,10 +1,21 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAgentReady } from "../useAgentReady";
+
+const COLLAPSE_STORAGE_KEY = "agentready.sidebarCollapsed";
+
+function getInitialCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSE_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
 
 export default function Sidebar() {
   const { products, importFile, exportLayer } = useAgentReady();
   const fileInputRef = useRef(null);
+  const [collapsed, setCollapsed] = useState(getInitialCollapsed);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -12,8 +23,28 @@ export default function Sidebar() {
     event.target.value = "";
   };
 
+  const toggleCollapsed = () => {
+    setCollapsed((current) => {
+      const next = !current;
+      try {
+        localStorage.setItem(COLLAPSE_STORAGE_KEY, String(next));
+      } catch {
+        // ignore storage errors (private browsing, etc.)
+      }
+      return next;
+    });
+  };
+
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
+      <button
+        className="sidebar-toggle"
+        onClick={toggleCollapsed}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        {collapsed ? "›" : "‹"}
+      </button>
       <div className="brand-lockup">
         <div className="brand-mark" aria-hidden="true">
           <span></span><span></span><span></span>
@@ -34,16 +65,16 @@ export default function Sidebar() {
       </div>
 
       <nav className="nav-stack" aria-label="Main navigation">
-        <NavLink to="/agentready" end className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
+        <NavLink to="/" end className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
           <span className="nav-icon">⌂</span>
           <span>Command center</span>
         </NavLink>
-        <NavLink to="/agentready/catalog" className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
+        <NavLink to="/catalog" className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
           <span className="nav-icon">◫</span>
           <span>Product knowledge</span>
           <span className="nav-count">{products.length}</span>
         </NavLink>
-        <NavLink to="/agentready/insights" className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
+        <NavLink to="/insights" className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
           <span className="nav-icon">⌁</span>
           <span>Intent insights</span>
         </NavLink>

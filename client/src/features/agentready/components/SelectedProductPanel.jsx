@@ -47,7 +47,7 @@ export default function SelectedProductPanel() {
         <p>{product.tradeoffs[0]}</p>
       </div>
       <div className="panel-footer-action">
-        <button className="text-button" onClick={() => navigate("/agentready/catalog")}>
+        <button className="text-button" onClick={() => navigate("/catalog")}>
           Open full knowledge card <span>↗</span>
         </button>
       </div>
