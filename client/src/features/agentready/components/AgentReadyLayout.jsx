@@ -6,9 +6,9 @@ import Toast from "./Toast";
 import "../agentready.css";
 
 const TITLES = {
-  "/agentready": "Command center",
-  "/agentready/catalog": "Product knowledge",
-  "/agentready/insights": "Intent insights",
+  "/": "Command center",
+  "/catalog": "Product knowledge",
+  "/insights": "Intent insights",
 };
 
 export default function AgentReadyLayout() {
