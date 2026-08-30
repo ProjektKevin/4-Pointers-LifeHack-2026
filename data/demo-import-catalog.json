@@ -1,0 +1,62 @@
+[
+  {
+    "brand": "Nimbus Trail",
+    "name": "Cascade 3",
+    "category": "Running shoes",
+    "price": 175,
+    "description": "A cushioned trail running shoe with a grippy rubber outsole and a rock plate, built for long training runs on technical, rocky trails in hot, dry climates.",
+    "weightG": 245,
+    "dropMm": 8,
+    "climate": "hot and dry"
+  },
+  {
+    "brand": "Meridian Sport",
+    "name": "Pulse Racer",
+    "category": "Running shoes",
+    "price": 210,
+    "description": "A carbon-plated racing shoe engineered for competitive 10K and half-marathon race day, with a propulsive foam midsole for experienced runners chasing a personal best.",
+    "weightG": 195,
+    "dropMm": 5
+  },
+  {
+    "brand": "Verdant Skin Co.",
+    "name": "Barrier Repair Duo",
+    "category": "Skincare routine",
+    "price": 68,
+    "description": "A two-step ceramide-rich cleanser and moisturizer set formulated for dry, sensitive skin prone to redness, designed to restore the skin barrier in under three minutes each morning.",
+    "steps": 2,
+    "minutes": 3,
+    "skinType": "dry / sensitive",
+    "fragrance": "fragrance-free"
+  },
+  {
+    "brand": "Solstice Botanicals",
+    "name": "Glow Reset Serum",
+    "category": "Skincare routine",
+    "price": 54,
+    "description": "A vitamin C brightening serum for dull, uneven-toned combination skin, meant to be layered into a five-minute evening routine alongside a nightly moisturizer.",
+    "steps": 1,
+    "minutes": 5,
+    "skinType": "combination"
+  },
+  {
+    "brand": "Clearwave Home",
+    "name": "Loft 30",
+    "category": "Air purifier",
+    "price": 249,
+    "description": "A HEPA air purifier built for larger living rooms and open-plan spaces up to 30 square meters, with an auto mode that ramps up when it senses cooking smoke or pet dander.",
+    "coverageM2": 30,
+    "noiseDb": 32,
+    "filter": "True HEPA H13"
+  },
+  {
+    "brand": "Pure Haven",
+    "name": "Nightstand Mini",
+    "category": "Air purifier",
+    "price": 179,
+    "description": "A tiny HEPA air purifier sized for a nightstand or desk, made for light sleepers who want cleaner air in a small bedroom without any noticeable fan noise at night.",
+    "coverageM2": 12,
+    "noiseDb": 22,
+    "filter": "HEPA H12"
+  }
+]

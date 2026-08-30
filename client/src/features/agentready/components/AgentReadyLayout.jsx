@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import SchemaModal from "./SchemaModal";
+import ImportSummaryModal from "./ImportSummaryModal";
 import Toast from "./Toast";
 import "../agentready.css";
 
@@ -30,6 +31,7 @@ export default function AgentReadyLayout() {
       </div>
       <Toast />
       <SchemaModal />
+      <ImportSummaryModal />
     </div>
   );
 }

@@ -6,7 +6,15 @@ export default function ResultsList() {
   const { lastResults, selectedProductId, selectProduct } = useAgentReady();
 
   if (!lastResults.length) {
-    return <div className="results-list"><div className="empty-state">No products match this category yet. Import a catalog or try a broader query.</div></div>;
+    return (
+      <div className="results-list">
+        <div className="empty-state">
+          <div className="empty-state-icon" aria-hidden="true">⌕</div>
+          <strong className="empty-state-title">No confident match in this catalog</strong>
+          <p className="empty-state-copy">This query doesn't clearly match running, skincare, or air-care products. Try rephrasing, or ask about one of those categories.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
