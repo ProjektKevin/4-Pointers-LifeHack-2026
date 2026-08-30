@@ -78,6 +78,10 @@ export default function Sidebar() {
           <span className="nav-icon">⌁</span>
           <span>Intent insights</span>
         </NavLink>
+        <NavLink to="/publish" className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
+          <span className="nav-icon">⇄</span>
+          <span>Publish</span>
+        </NavLink>
       </nav>
 
       <div className="sidebar-divider"></div>

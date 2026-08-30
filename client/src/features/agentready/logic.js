@@ -59,6 +59,36 @@ function parseArea(text) {
   return match ? Number(match[1]) : null;
 }
 
+// Single source of truth for every *qualitative* signal the query engine can detect
+// (as opposed to the numeric ones — budget/minutes/area — which are parsed directly
+// from the query text and synthesized below). Both the regex-based fallback parser
+// and the AI-based extraction path (see AgentReadyContext.jsx) build their signal
+// list by choosing keys from this registry — neither one is allowed to invent a new
+// signal or test function, which is what keeps an AI-driven result auditable in
+// exactly the same way as the deterministic one.
+export const SIGNAL_REGISTRY = {
+  running: {
+    halfMarathon: { label: "Half marathon", detail: "Built for half-marathon training or race day", priority: 2, test: (p) => p.useCases.includes("half marathon") },
+    humid: { label: "Humid weather", detail: "Climate-specific breathability signal", priority: 2, test: (p) => /humid|warm/i.test(p.specs.climate) || p.useCases.includes("humid weather") },
+    lightweight: { label: "Lightweight", detail: "Measured shoe weight below 230 g", priority: 2, test: (p) => p.specs.weightG <= 230 },
+    beginner: { label: "Beginner-friendly", detail: "Content is mapped to first-time runners", priority: 1, test: (p) => p.personas.some((item) => /beginner|first-time/i.test(item)) },
+    easyRuns: { label: "Easy runs", detail: "Mapped to comfortable daily mileage", priority: 1, test: (p) => p.useCases.some((item) => /daily|easy/i.test(item)) },
+  },
+  skincare: {
+    oilySkin: { label: "Oily skin", detail: "Routine is labeled for oily or combination skin", priority: 2, test: (p) => /oily|combination/i.test(p.specs.skinType) },
+    sustainable: { label: "Sustainable", detail: "Refill, packaging, and sustainability context present", priority: 2, test: (p) => p.sustainability.score >= 80 || p.specs.refillable },
+    fragranceFree: { label: "Fragrance-free", detail: "No added fragrance signal", priority: 1, test: (p) => /fragrance-free/i.test(p.specs.fragrance) },
+  },
+  air: {
+    quiet: { label: "Quiet sleep", detail: "Measured sleep-mode noise at or below 28 dB", priority: 2, test: (p) => p.specs.noiseDb <= 28 },
+    smallRoom: { label: "Small bedroom", detail: "Coverage fits a compact room without oversizing", priority: 2, test: (p) => p.specs.coverageM2 >= 12 && p.specs.coverageM2 <= 25 },
+  },
+};
+
+// Regex-based fallback parser — used whenever the AI extraction call fails, times
+// out, or returns something invalid, so the Query Lab never hard-fails. Detects the
+// same signal keys the AI path can choose from, just via keyword matching instead
+// of a model call.
 export function parseQuery(rawQuery) {
   const query = rawQuery.trim();
   const lower = query.toLowerCase();
@@ -69,30 +99,52 @@ export function parseQuery(rawQuery) {
   const budget = parseBudget(lower);
   const minutes = parseMinutes(lower);
   const area = parseArea(lower);
-  const signals = [];
-  const addSignal = (key, label, detail, test, priority = 1) => signals.push({ key, label, detail, test, priority });
+  const signalKeys = [];
 
   if (vertical === "running") {
-    if (/half[- ]marathon/i.test(lower)) addSignal("halfMarathon", "Half marathon", "Built for half-marathon training or race day", (p) => p.useCases.includes("half marathon"), 2);
-    if (/humid|singapore|warm|tropical|heat/i.test(lower)) addSignal("humid", "Humid weather", "Climate-specific breathability signal", (p) => /humid|warm/i.test(p.specs.climate) || p.useCases.includes("humid weather"), 2);
-    if (/lightweight|light weight|light shoe|low weight/i.test(lower)) addSignal("lightweight", "Lightweight", "Measured shoe weight below 230 g", (p) => p.specs.weightG <= 230, 2);
-    if (/beginner|new runner|first/i.test(lower)) addSignal("beginner", "Beginner-friendly", "Content is mapped to first-time runners", (p) => p.personas.some((item) => /beginner|first-time/i.test(item)), 1);
-    if (/easy run|easy runs|daily/i.test(lower)) addSignal("easyRuns", "Easy runs", "Mapped to comfortable daily mileage", (p) => p.useCases.some((item) => /daily|easy/i.test(item)), 1);
+    if (/half[- ]marathon/i.test(lower)) signalKeys.push("halfMarathon");
+    if (/humid|singapore|warm|tropical|heat/i.test(lower)) signalKeys.push("humid");
+    if (/lightweight|light weight|light shoe|low weight/i.test(lower)) signalKeys.push("lightweight");
+    if (/beginner|new runner|first/i.test(lower)) signalKeys.push("beginner");
+    if (/easy run|easy runs|daily/i.test(lower)) signalKeys.push("easyRuns");
   }
   if (vertical === "skincare") {
-    if (/oily|oil[- ]control|combination/i.test(lower)) addSignal("oilySkin", "Oily skin", "Routine is labeled for oily or combination skin", (p) => /oily|combination/i.test(p.specs.skinType), 2);
-    if (/sustainable|eco|refill|low[- ]waste|planet/i.test(lower)) addSignal("sustainable", "Sustainable", "Refill, packaging, and sustainability context present", (p) => p.sustainability.score >= 80 || p.specs.refillable, 2);
-    if (/fragrance[- ]free|unscented|no fragrance/i.test(lower)) addSignal("fragranceFree", "Fragrance-free", "No added fragrance signal", (p) => /fragrance-free/i.test(p.specs.fragrance), 1);
-    if (minutes !== null) addSignal("time", `${minutes}-min morning`, `Routine is documented at ${minutes} minutes or less`, (p) => p.specs.minutes <= minutes, 2);
+    if (/oily|oil[- ]control|combination/i.test(lower)) signalKeys.push("oilySkin");
+    if (/sustainable|eco|refill|low[- ]waste|planet/i.test(lower)) signalKeys.push("sustainable");
+    if (/fragrance[- ]free|unscented|no fragrance/i.test(lower)) signalKeys.push("fragranceFree");
   }
   if (vertical === "air") {
-    if (/quiet|silent|sleep|noise|light sleeper/i.test(lower)) addSignal("quiet", "Quiet sleep", "Measured sleep-mode noise at or below 28 dB", (p) => p.specs.noiseDb <= 28, 2);
-    if (/small bedroom|small room|20\s*m|compact/i.test(lower)) addSignal("smallRoom", "Small bedroom", "Coverage fits a compact room without oversizing", (p) => p.specs.coverageM2 >= (area || 12) && p.specs.coverageM2 <= 25, 2);
-    if (area !== null) addSignal("area", `${area} m² coverage`, `Published coverage meets a ${area} m² room`, (p) => p.specs.coverageM2 >= area, 2);
+    if (/quiet|silent|sleep|noise|light sleeper/i.test(lower)) signalKeys.push("quiet");
+    if (/small bedroom|small room|20\s*m|compact/i.test(lower)) signalKeys.push("smallRoom");
   }
-  if (budget !== null) addSignal("budget", `Under ${query.match(/s\s*\$\s*\d+/i)?.[0] || `$${budget}`}`, `Price is at or below ${formatMoney({ currency: "S$", price: budget })}`, (p) => p.price <= budget, 2);
 
-  return { raw: query, vertical, budget, minutes, area, signals };
+  return buildParsedFromExtraction(query, { vertical, budget, minutes, area, signalKeys });
+}
+
+// Takes a structured intent extraction — {vertical, budget, minutes, area, signalKeys}
+// — from EITHER the regex parser above or the AI extraction endpoint, and rebuilds it
+// into the full `parsed` shape the rest of the app expects (with real test functions
+// attached). This is what keeps queryResult()/rankProducts() identical regardless of
+// which path produced the extraction.
+export function buildParsedFromExtraction(rawQuery, extraction) {
+  const { vertical, budget = null, minutes = null, area = null, signalKeys = [] } = extraction;
+  const signals = [];
+
+  for (const key of signalKeys) {
+    const entry = vertical && SIGNAL_REGISTRY[vertical]?.[key];
+    if (entry) signals.push({ key, ...entry });
+  }
+  if (vertical === "skincare" && minutes !== null) {
+    signals.push({ key: "time", label: `${minutes}-min morning`, detail: `Routine is documented at ${minutes} minutes or less`, priority: 2, test: (p) => p.specs.minutes <= minutes });
+  }
+  if (vertical === "air" && area !== null) {
+    signals.push({ key: "area", label: `${area} m² coverage`, detail: `Published coverage meets a ${area} m² room`, priority: 2, test: (p) => p.specs.coverageM2 >= area });
+  }
+  if (budget !== null) {
+    signals.push({ key: "budget", label: `Under ${rawQuery.match(/s\s*\$\s*\d+/i)?.[0] || `$${budget}`}`, detail: `Price is at or below ${formatMoney({ currency: "S$", price: budget })}`, priority: 2, test: (p) => p.price <= budget });
+  }
+
+  return { raw: rawQuery, vertical, budget, minutes, area, signals };
 }
 
 export function queryResult(product, parsed) {
@@ -111,13 +163,53 @@ export function queryResult(product, parsed) {
   return { product, readiness, score, intentFit, categoryMatch, budgetMatch, signalResults, missing, matchedSignals };
 }
 
-export function runSimulation(products, rawQuery) {
-  const parsed = parseQuery(rawQuery);
+// Ranks products against an already-parsed intent — shared by both the regex-only
+// runSimulation() below and AgentReadyContext's AI-powered query path, so the ranking
+// math itself never differs based on where the intent came from.
+export function rankProducts(products, parsed) {
+  // An unrecognized category means "we don't know what you're shopping for" — not
+  // "everything is a match." Without this, every product got a flat category-match
+  // bonus whenever `vertical` was null, which collapsed the ranking into "just
+  // recommend whichever product has the highest readiness score," regardless of
+  // relevance. Honest "no match" beats a confident wrong answer.
+  if (!parsed.vertical) return [];
+
   const candidates = products
     .map((product) => queryResult(product, parsed))
-    .filter((result) => !parsed.vertical || result.product.vertical === parsed.vertical)
+    .filter((result) => result.product.vertical === parsed.vertical)
     .sort((a, b) => b.score - a.score || b.readiness.overall - a.readiness.overall);
-  const results = candidates.slice(0, 3);
+  return candidates.slice(0, 3);
+}
+
+// Ranks products the AI-relevance way — the model has already judged, per
+// product, how well its own real facts (including idealFor/personas/useCases,
+// which the hardcoded SIGNAL_REGISTRY above never looks at) support the query.
+// Same score formula shape as queryResult() above (39 base + up to 44 for fit
+// + budget bonus/penalty + a readiness bonus) so results feel consistent
+// regardless of which matching path produced them; only the "how well does
+// this product fit the intent" component's source differs.
+export function rankByRelevance(candidateProducts, relevanceById, budget) {
+  const results = candidateProducts.map((product) => {
+    const relevance = relevanceById[product.id] || { relevanceScore: 0, matched: [], missing: [] };
+    const readiness = readinessFor(product);
+    const budgetMatch = budget === null || budget === undefined || product.price <= budget;
+    let score = 39 + relevance.relevanceScore * 0.44 + (budgetMatch ? 8 : -20) + readiness.overall * 0.09;
+    score = Math.max(0, Math.min(99, Math.round(score)));
+    return {
+      product,
+      readiness,
+      score,
+      budgetMatch,
+      matchedSignals: relevance.matched,
+      missing: relevance.missing,
+    };
+  });
+  return results.sort((a, b) => b.score - a.score || b.readiness.overall - a.readiness.overall).slice(0, 3);
+}
+
+export function runSimulation(products, rawQuery) {
+  const parsed = parseQuery(rawQuery);
+  const results = rankProducts(products, parsed);
   return { parsed, results };
 }
 
@@ -133,21 +225,42 @@ export function factRowsFor(product) {
 
 export function resultReason(result) {
   const p = result.product;
-  if (p.vertical === "running") return `${p.specs.weightG} g with ${p.specs.breathability.toLowerCase()} breathability and an ${p.specs.dropMm} mm drop.`;
-  if (p.vertical === "skincare") return `${p.specs.steps} steps in ${p.specs.minutes} minutes for ${p.specs.skinType.toLowerCase()} skin.`;
-  return `${p.specs.noiseDb} dB sleep mode with ${p.specs.coverageM2} m² published coverage.`;
+  // Imported/AI-enriched products won't always have every spec field a
+  // hand-authored demo product has (e.g. no "breathability" or "skinType") —
+  // these templates must degrade gracefully instead of crashing the render.
+  if (p.vertical === "running") {
+    const breathability = p.specs.breathability?.toLowerCase() || "unrated";
+    const weight = p.specs.weightG ?? "unlisted";
+    const drop = p.specs.dropMm ?? "unlisted";
+    return `${weight} g with ${breathability} breathability and an ${drop} mm drop.`;
+  }
+  if (p.vertical === "skincare") {
+    const skinType = p.specs.skinType?.toLowerCase() || "any";
+    const steps = p.specs.steps ?? "unlisted";
+    const minutes = p.specs.minutes ?? "unlisted";
+    return `${steps} steps in ${minutes} minutes for ${skinType} skin.`;
+  }
+  const noise = p.specs.noiseDb ?? "unlisted";
+  const coverage = p.specs.coverageM2 ?? "unlisted";
+  return `${noise} dB sleep mode with ${coverage} m² published coverage.`;
 }
 
 export function agentSummary(product, parsed = null) {
   const p = product;
   if (p.vertical === "running") {
-    if (parsed?.vertical === "running") return `${p.brand} ${p.name} is a strong match for runners building toward a half marathon in warm, humid conditions: its ${p.specs.weightG} g build and high-breathability mesh keep the recommendation grounded in measurable product facts.`;
+    const weight = p.specs.weightG ?? "a lightweight";
+    if (parsed?.vertical === "running") return `${p.brand} ${p.name} is a strong match for runners building toward a half marathon in warm, humid conditions: its ${weight} g build and high-breathability mesh keep the recommendation grounded in measurable product facts.`;
     return `${p.brand} ${p.name} is a breathable daily trainer for runners who want a light, responsive ride for everyday road mileage.`;
   }
   if (p.vertical === "skincare") {
-    return `${p.brand} ${p.name} is a ${p.specs.minutes}-minute, ${p.specs.steps}-step morning routine for ${p.specs.skinType.toLowerCase()} skin, with ${p.sustainability.score >= 80 ? "strong refill and packaging signals" : "documented product-level details"}.`;
+    const skinType = p.specs.skinType?.toLowerCase() || "your";
+    const minutes = p.specs.minutes ?? "a few";
+    const steps = p.specs.steps ?? "several";
+    return `${p.brand} ${p.name} is a ${minutes}-minute, ${steps}-step morning routine for ${skinType} skin, with ${p.sustainability.score >= 80 ? "strong refill and packaging signals" : "documented product-level details"}.`;
   }
-  return `${p.brand} ${p.name} is a compact bedroom purifier with ${p.specs.noiseDb} dB sleep mode, ${p.specs.coverageM2} m² published coverage, and a HEPA-based filter specification.`;
+  const noise = p.specs.noiseDb ?? "a low";
+  const coverage = p.specs.coverageM2 ?? "a compact";
+  return `${p.brand} ${p.name} is a compact bedroom purifier with ${noise} dB sleep mode, ${coverage} m² published coverage, and a HEPA-based filter specification.`;
 }
 
 export function structuredProduct(product) {
@@ -197,6 +310,30 @@ export function runSweep(products, goldenQueries) {
     const top = results[0];
     const gaps = results.slice(0, 2).flatMap((candidate) => candidate.missing.length ? candidate.missing : candidate.product.contentGaps.slice(0, 1));
     return { ...item, topScore: top?.score || 0, topProduct: top ? `${top.product.brand} ${top.product.name}` : null, success: Boolean(top && top.score >= 75), gaps: [...new Set(gaps)] };
+  });
+}
+
+// The fields import enrichment is allowed to draft via AI. Demo/hackathon
+// mode: claims/evidence/sustainability/tradeoffs are included at the user's
+// explicit, informed request — this catalog is entirely fictional demo data,
+// not real products, so "verified" claims here are illustrative, not real
+// evidence about an actual brand.
+export const ARRAY_ENRICHABLE_FIELDS = ["idealFor", "personas", "useCases", "benefits", "tradeoffs", "faqs"];
+export const ENRICHABLE_FIELDS = [...ARRAY_ENRICHABLE_FIELDS, "claims", "sustainability"];
+
+const DEFAULT_SUSTAINABILITY_DETAIL = "No sustainability context imported.";
+
+function isDefaultSustainability(sustainability) {
+  return !sustainability || (sustainability.score === 40 && sustainability.detail === DEFAULT_SUSTAINABILITY_DETAIL);
+}
+
+// Which of the enrichable fields are actually empty (or still the untouched
+// default) on this product — the single source of truth for "what's missing"
+// used by the import flow.
+export function missingEnrichableFields(product) {
+  return ENRICHABLE_FIELDS.filter((field) => {
+    if (field === "sustainability") return isDefaultSustainability(product.sustainability);
+    return !product[field]?.length;
   });
 }
 
@@ -261,4 +398,97 @@ export function parseImportedFileContent(filename, text) {
 
 export function exportedLayer(products) {
   return { schema: "agentready.catalog.v1", generated_at: new Date().toISOString(), products: products.map(structuredProduct) };
+}
+
+// --- Publish: real schema.org JSON-LD + agent/OpenAI feed generation -------
+// This is the compliant distribution layer discussed earlier — structured
+// data that mirrors what's already visible in the app, not hidden content.
+// There's no real storefront behind this demo, so `url`/`availability`/brand
+// identity are demo placeholders, not a claim of a live product page.
+
+export const DEMO_BRAND = { name: "Northstar Demo", domain: "northstar-demo.example", country: "SG", currency: "S$" };
+
+function productUrl(product, brand) {
+  return `https://${brand.domain}/products/${product.id}`;
+}
+
+export function productJsonLd(product, brand = DEMO_BRAND) {
+  const url = productUrl(product, brand);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${url}#product`,
+    name: `${product.brand} ${product.name}`,
+    sku: product.id,
+    category: product.category,
+    description: product.description,
+    additionalProperty: (product.attributes || []).map(([name, value]) => ({ "@type": "PropertyValue", name, value })),
+    offers: {
+      "@type": "Offer",
+      url,
+      priceCurrency: brand.currency,
+      price: product.price,
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    dateModified: product.lastUpdated,
+  };
+}
+
+function agentFeedProduct(product, brand) {
+  const readiness = readinessFor(product);
+  return {
+    id: product.id,
+    canonical_url: productUrl(product, brand),
+    name: `${product.brand} ${product.name}`,
+    category: product.category,
+    description: product.description,
+    commercial: { price: product.price, currency: product.currency || brand.currency, availability: "InStock" },
+    suitability: {
+      ideal_for: product.idealFor,
+      use_cases: product.useCases,
+      audiences: product.personas,
+      benefits: product.benefits,
+    },
+    specifications: Object.fromEntries(product.attributes || []),
+    substantiation: product.claims,
+    trade_offs: product.tradeoffs,
+    provenance: { source: "brand_catalog", approved: true, updated_at: product.lastUpdated, readiness: readiness.overall },
+  };
+}
+
+export function agentFeed(products, brand = DEMO_BRAND) {
+  return {
+    schema_version: "1.0",
+    brand,
+    generated_at: new Date().toISOString(),
+    products: products.map((product) => agentFeedProduct(product, brand)),
+  };
+}
+
+function openAiFeedProduct(product, brand) {
+  return {
+    is_eligible_search: true,
+    item_id: product.id,
+    title: `${product.brand} ${product.name}`,
+    description: product.description,
+    url: productUrl(product, brand),
+    brand: brand.name,
+    condition: "new",
+    product_category: product.category,
+    price: `${product.price} ${brand.currency}`,
+    availability: "in_stock",
+    seller_name: brand.name,
+    target_countries: [brand.country],
+  };
+}
+
+export function openAiFeed(products, brand = DEMO_BRAND) {
+  return {
+    schema: "openai-agentic-commerce-stable-aligned",
+    integration_status: "market_eligibility_review_required",
+    validation_warnings: ["Demo catalog — verify real OpenAI Commerce country/eligibility before production submission."],
+    generated_at: new Date().toISOString(),
+    products: products.map((product) => openAiFeedProduct(product, brand)),
+  };
 }

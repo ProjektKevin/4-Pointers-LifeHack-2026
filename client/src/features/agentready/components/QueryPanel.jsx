@@ -10,13 +10,20 @@ const PROMPT_CHIPS = [
 
 const CHIP_LABELS = ["Half marathon · humid · under S$200", "Sustainable oily-skin routine", "Quiet purifier · small bedroom"];
 
+const STATUS_COPY = {
+  ai: { label: "AI-parsed", className: "ai" },
+  fallback: { label: "Fallback parser", className: "fallback" },
+};
+
 export default function QueryPanel() {
-  const { defaultQuery, lastResults, products, runQuery, openTraceModal } = useAgentReady();
+  const { defaultQuery, lastResults, products, runQuery, openTraceModal, isQuerying, queryStatus } = useAgentReady();
   const [query, setQuery] = useState(defaultQuery);
 
   const handleRun = () => {
     if (query.trim()) runQuery(query);
   };
+
+  const status = queryStatus ? STATUS_COPY[queryStatus] : null;
 
   return (
     <section className="panel query-panel">
@@ -27,7 +34,12 @@ export default function QueryPanel() {
         </div>
         <div className="query-status">
           <span className="status-dot"></span>
-          <span>{lastResults.length} products ranked from {products.length}</span>
+          <span>
+            {isQuerying ? "Thinking…" : `${lastResults.length} products ranked from ${products.length}`}
+          </span>
+          {!isQuerying && status && (
+            <span className={`parse-source-badge ${status.className}`}>{status.label}</span>
+          )}
         </div>
       </div>
 
@@ -38,8 +50,11 @@ export default function QueryPanel() {
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") handleRun(); }}
           aria-label="Shopping intent query"
+          disabled={isQuerying}
         />
-        <button className="run-button" onClick={handleRun}>Run simulation <span>↗</span></button>
+        <button className="run-button" onClick={handleRun} disabled={isQuerying}>
+          {isQuerying ? "Running…" : "Run simulation"} <span>↗</span>
+        </button>
       </div>
       <div className="prompt-meta">
         <span className="signal-pulse"></span>
@@ -47,7 +62,7 @@ export default function QueryPanel() {
       </div>
       <div className="prompt-chips">
         {PROMPT_CHIPS.map((chip, index) => (
-          <button key={chip} onClick={() => { setQuery(chip); runQuery(chip); }}>{CHIP_LABELS[index]}</button>
+          <button key={chip} disabled={isQuerying} onClick={() => { setQuery(chip); runQuery(chip); }}>{CHIP_LABELS[index]}</button>
         ))}
       </div>
 
