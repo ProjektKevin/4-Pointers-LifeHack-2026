@@ -1,13 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAgentReady } from "../useAgentReady";
 
-const FIELDS = ["idealFor", "personas", "useCases", "benefits"];
+// Order matters here — it's the column order in the table.
+const FIELDS = ["idealFor", "personas", "useCases", "benefits", "tradeoffs", "faqs", "claims", "sustainability"];
 const FIELD_LABELS = {
   idealFor: "Ideal for",
   personas: "Personas",
   useCases: "Use cases",
   benefits: "Benefits",
+  tradeoffs: "Trade-offs",
+  faqs: "FAQs",
+  claims: "Claims",
+  sustainability: "Sustainability",
 };
+// claims/sustainability are objects, not simple string arrays — shown, but
+// not editable via the plain one-line-per-value textarea the other fields use.
+const EDITABLE_FIELDS = new Set(["idealFor", "personas", "useCases", "benefits", "tradeoffs", "faqs"]);
+
+function renderCellContent(field, value) {
+  if (field === "sustainability") {
+    if (!value || typeof value.score !== "number") return null;
+    return <p className="enrichment-note">{value.score}/100 — {value.detail}</p>;
+  }
+  if (field === "claims") {
+    const claims = Array.isArray(value) ? value : [];
+    return <ul>{claims.map((claim) => <li key={claim.label}>{claim.label} — {claim.evidence}</li>)}</ul>;
+  }
+  const values = Array.isArray(value) ? value : [];
+  return <ul>{values.map((item) => <li key={item}>{item}</li>)}</ul>;
+}
 
 export default function ImportSummaryModal() {
   const { importSummary, products, closeImportSummary, updateProductField, clearAllImportSuggestions } = useAgentReady();
@@ -77,7 +98,7 @@ export default function ImportSummaryModal() {
           <button className="close-button" aria-label="Close" onClick={closeImportSummary}>×</button>
         </div>
         <p className="modal-copy">
-          Amber cells are AI-drafted from each product's own description — nothing invented beyond that. Double-click any cell to edit it directly; edited cells turn neutral to show they've been reviewed.
+          Amber cells are AI-drafted from each product's own description — this is demo/hackathon content, not verified real-world evidence. Double-click a text-list cell to edit it directly; Claims and Sustainability aren't inline-editable here (different shape) but can be cleared below.
         </p>
         <div className="enrichment-table-wrap">
           <table className="enrichment-table">
@@ -96,14 +117,15 @@ export default function ImportSummaryModal() {
                     {FIELDS.map((field) => {
                       if (!row.fields.includes(field)) return <td key={field}></td>;
                       const cellKey = `${row.productId}:${field}`;
-                      const values = product?.[field] || [];
+                      const value = product?.[field];
+                      const isEditable = EDITABLE_FIELDS.has(field);
                       const isEditing = editingCell === cellKey;
                       const isEdited = editedCells.has(cellKey);
                       return (
                         <td
                           key={field}
                           className={`enrichment-cell ${isEditing ? "editing" : isEdited ? "edited" : "ai"}`}
-                          onDoubleClick={() => !isEditing && startEdit(row.productId, field, values)}
+                          onDoubleClick={() => isEditable && !isEditing && startEdit(row.productId, field, value || [])}
                         >
                           {isEditing ? (
                             <textarea
@@ -119,9 +141,7 @@ export default function ImportSummaryModal() {
                                 if (event.key === "Escape") cancelEdit();
                               }}
                             />
-                          ) : (
-                            <ul>{values.map((value) => <li key={value}>{value}</li>)}</ul>
-                          )}
+                          ) : renderCellContent(field, value)}
                         </td>
                       );
                     })}

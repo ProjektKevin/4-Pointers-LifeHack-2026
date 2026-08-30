@@ -313,15 +313,28 @@ export function runSweep(products, goldenQueries) {
   });
 }
 
-// The fields import enrichment is allowed to draft via AI — deliberately
-// excludes claims/evidence, sustainability, and tradeoffs, which require real
-// proof or real disclosure from the brand and must never be guessed at.
-export const ENRICHABLE_FIELDS = ["idealFor", "personas", "useCases", "benefits"];
+// The fields import enrichment is allowed to draft via AI. Demo/hackathon
+// mode: claims/evidence/sustainability/tradeoffs are included at the user's
+// explicit, informed request — this catalog is entirely fictional demo data,
+// not real products, so "verified" claims here are illustrative, not real
+// evidence about an actual brand.
+export const ARRAY_ENRICHABLE_FIELDS = ["idealFor", "personas", "useCases", "benefits", "tradeoffs", "faqs"];
+export const ENRICHABLE_FIELDS = [...ARRAY_ENRICHABLE_FIELDS, "claims", "sustainability"];
 
-// Which of the enrichable fields are actually empty on this product — the
-// single source of truth for "what's missing" used by the import flow.
+const DEFAULT_SUSTAINABILITY_DETAIL = "No sustainability context imported.";
+
+function isDefaultSustainability(sustainability) {
+  return !sustainability || (sustainability.score === 40 && sustainability.detail === DEFAULT_SUSTAINABILITY_DETAIL);
+}
+
+// Which of the enrichable fields are actually empty (or still the untouched
+// default) on this product — the single source of truth for "what's missing"
+// used by the import flow.
 export function missingEnrichableFields(product) {
-  return ENRICHABLE_FIELDS.filter((field) => !product[field]?.length);
+  return ENRICHABLE_FIELDS.filter((field) => {
+    if (field === "sustainability") return isDefaultSustainability(product.sustainability);
+    return !product[field]?.length;
+  });
 }
 
 function safeJSON(value, fallback) {
@@ -385,4 +398,97 @@ export function parseImportedFileContent(filename, text) {
 
 export function exportedLayer(products) {
   return { schema: "agentready.catalog.v1", generated_at: new Date().toISOString(), products: products.map(structuredProduct) };
+}
+
+// --- Publish: real schema.org JSON-LD + agent/OpenAI feed generation -------
+// This is the compliant distribution layer discussed earlier — structured
+// data that mirrors what's already visible in the app, not hidden content.
+// There's no real storefront behind this demo, so `url`/`availability`/brand
+// identity are demo placeholders, not a claim of a live product page.
+
+export const DEMO_BRAND = { name: "Northstar Demo", domain: "northstar-demo.example", country: "SG", currency: "S$" };
+
+function productUrl(product, brand) {
+  return `https://${brand.domain}/products/${product.id}`;
+}
+
+export function productJsonLd(product, brand = DEMO_BRAND) {
+  const url = productUrl(product, brand);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${url}#product`,
+    name: `${product.brand} ${product.name}`,
+    sku: product.id,
+    category: product.category,
+    description: product.description,
+    additionalProperty: (product.attributes || []).map(([name, value]) => ({ "@type": "PropertyValue", name, value })),
+    offers: {
+      "@type": "Offer",
+      url,
+      priceCurrency: brand.currency,
+      price: product.price,
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    dateModified: product.lastUpdated,
+  };
+}
+
+function agentFeedProduct(product, brand) {
+  const readiness = readinessFor(product);
+  return {
+    id: product.id,
+    canonical_url: productUrl(product, brand),
+    name: `${product.brand} ${product.name}`,
+    category: product.category,
+    description: product.description,
+    commercial: { price: product.price, currency: product.currency || brand.currency, availability: "InStock" },
+    suitability: {
+      ideal_for: product.idealFor,
+      use_cases: product.useCases,
+      audiences: product.personas,
+      benefits: product.benefits,
+    },
+    specifications: Object.fromEntries(product.attributes || []),
+    substantiation: product.claims,
+    trade_offs: product.tradeoffs,
+    provenance: { source: "brand_catalog", approved: true, updated_at: product.lastUpdated, readiness: readiness.overall },
+  };
+}
+
+export function agentFeed(products, brand = DEMO_BRAND) {
+  return {
+    schema_version: "1.0",
+    brand,
+    generated_at: new Date().toISOString(),
+    products: products.map((product) => agentFeedProduct(product, brand)),
+  };
+}
+
+function openAiFeedProduct(product, brand) {
+  return {
+    is_eligible_search: true,
+    item_id: product.id,
+    title: `${product.brand} ${product.name}`,
+    description: product.description,
+    url: productUrl(product, brand),
+    brand: brand.name,
+    condition: "new",
+    product_category: product.category,
+    price: `${product.price} ${brand.currency}`,
+    availability: "in_stock",
+    seller_name: brand.name,
+    target_countries: [brand.country],
+  };
+}
+
+export function openAiFeed(products, brand = DEMO_BRAND) {
+  return {
+    schema: "openai-agentic-commerce-stable-aligned",
+    integration_status: "market_eligibility_review_required",
+    validation_warnings: ["Demo catalog — verify real OpenAI Commerce country/eligibility before production submission."],
+    generated_at: new Date().toISOString(),
+    products: products.map((product) => openAiFeedProduct(product, brand)),
+  };
 }

@@ -141,26 +141,33 @@ export const summarizeProduct = async (req, res) => {
   }
 };
 
-// The only fields import enrichment is allowed to draft. Deliberately excludes
-// claims/evidence, sustainability, and tradeoffs — those require real proof or
-// real disclosure from the brand and must never be guessed at.
-const ENRICHABLE_FIELDS = ["idealFor", "personas", "useCases", "benefits"];
+// Demo/hackathon mode: the brand/legal-risk guardrail that used to exclude
+// claims/evidence/sustainability/tradeoffs from AI drafting has been dropped
+// at the user's explicit, informed request (catalog is entirely fictional
+// demo data — StrideFlow, Nimbus Trail, etc. are not real companies). Content
+// generated here is illustrative for a hackathon demo, not real evidence.
+const ARRAY_STRING_FIELDS = ["idealFor", "personas", "useCases", "benefits", "tradeoffs", "faqs"];
+const ENRICHABLE_FIELDS = [...ARRAY_STRING_FIELDS, "claims", "sustainability"];
 const MAX_ITEMS_PER_FIELD = 5;
 
 function buildEnrichmentPrompt(missingFields) {
-  return `You are drafting missing catalog fields for a shopping product, based ONLY on the real facts given about it. You will be given a product's brand, name, category, description, specs, and price, plus a list of fields to draft.
+  return `You are drafting missing catalog fields for a shopping product (a hackathon demo catalog — illustrative content is fine), based on the real facts given about it. You will be given a product's brand, name, category, description, specs, and price, plus a list of fields to draft.
 
-For each requested field, propose a short array of strings (at most ${MAX_ITEMS_PER_FIELD} items each), derived only from the given facts:
-- "idealFor": situations or use cases this product is well suited for
-- "personas": types of shoppers this product is aimed at
-- "useCases": specific scenarios where this product would be used
-- "benefits": genuine advantages implied by the given specs/description
+For each requested field, produce content derived from the given facts:
+- "idealFor": array of up to ${MAX_ITEMS_PER_FIELD} short strings — situations this product suits
+- "personas": array of up to ${MAX_ITEMS_PER_FIELD} short strings — types of shoppers it's aimed at
+- "useCases": array of up to ${MAX_ITEMS_PER_FIELD} short strings — specific usage scenarios
+- "benefits": array of up to ${MAX_ITEMS_PER_FIELD} short strings — advantages implied by the given specs/description
+- "tradeoffs": array of up to ${MAX_ITEMS_PER_FIELD} short strings — plausible honest downsides/limitations
+- "faqs": array of up to ${MAX_ITEMS_PER_FIELD} short strings — plausible customer questions about this product
+- "claims": array of up to ${MAX_ITEMS_PER_FIELD} objects, each {"label": short claim title, "detail": one sentence explaining it, "evidence": a short plausible source citation e.g. "Internal lab test · 2026-01", "verified": true}
+- "sustainability": ONE object {"score": integer 0-100 reflecting how sustainable this product sounds given the facts, "detail": one sentence explaining the score}
 
-Only draft the fields listed in "missingFields" below. Do not invent a specific measurable claim, certification, or test result — that requires real evidence this product data does not include. Never use a relative/comparative descriptor (e.g. "lightweight," "fast," "affordable," "compact") unless a number in the given specs actually supports it by an ordinary reading — if you're not sure a number backs it up, describe the fact plainly instead (state the actual spec value rather than characterizing it). If the given facts are too thin to say something meaningful for a field, return a shorter array (even empty) rather than guessing.
+Only include the keys listed in "missingFields" below — omit every other key entirely.
 
 missingFields: ${JSON.stringify(missingFields)}
 
-Respond with ONLY a JSON object containing exactly the keys in missingFields, each mapped to an array of strings.`;
+Respond with ONLY a JSON object containing exactly the keys in missingFields, no markdown fences, no prose.`;
 }
 
 function isValidEnrichmentRequest(product, missingFields) {
@@ -169,13 +176,36 @@ function isValidEnrichmentRequest(product, missingFields) {
   return missingFields.every((field) => ENRICHABLE_FIELDS.includes(field));
 }
 
+function sanitizeStringArray(value) {
+  return (Array.isArray(value) ? value : [])
+    .filter((item) => typeof item === "string" && item.trim())
+    .map((item) => item.trim())
+    .slice(0, MAX_ITEMS_PER_FIELD);
+}
+
 function sanitizeEnrichment(result, missingFields) {
   const sanitized = {};
   for (const field of missingFields) {
-    const values = result?.[field];
-    sanitized[field] = Array.isArray(values)
-      ? values.filter((item) => typeof item === "string" && item.trim()).map((item) => item.trim()).slice(0, MAX_ITEMS_PER_FIELD)
-      : [];
+    const value = result?.[field];
+    if (field === "sustainability") {
+      const scoreNumber = Number(value?.score);
+      sanitized.sustainability = {
+        score: Number.isFinite(scoreNumber) ? Math.max(0, Math.min(100, Math.round(scoreNumber))) : 50,
+        detail: typeof value?.detail === "string" && value.detail.trim() ? value.detail.trim() : "AI-estimated sustainability context.",
+      };
+    } else if (field === "claims") {
+      sanitized.claims = (Array.isArray(value) ? value : [])
+        .filter((claim) => claim && typeof claim.label === "string" && claim.label.trim())
+        .map((claim) => ({
+          label: claim.label.trim(),
+          detail: typeof claim.detail === "string" ? claim.detail.trim() : "",
+          evidence: typeof claim.evidence === "string" && claim.evidence.trim() ? claim.evidence.trim() : "AI-generated demo claim",
+          verified: true,
+        }))
+        .slice(0, MAX_ITEMS_PER_FIELD);
+    } else {
+      sanitized[field] = sanitizeStringArray(value);
+    }
   }
   return sanitized;
 }

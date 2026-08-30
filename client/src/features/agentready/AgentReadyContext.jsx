@@ -11,6 +11,7 @@ import {
   traceOutput,
   parseImportedFileContent,
   missingEnrichableFields,
+  ENRICHABLE_FIELDS,
   exportedLayer,
 } from "./logic";
 import { fetchQueryExtraction, fetchRelevanceRanking, fetchAgentSummary, fetchImportEnrichment } from "./llmQuery";
@@ -171,10 +172,10 @@ export function AgentReadyProvider({ children }) {
         const text = String(reader.result || "");
         const imported = parseImportedFileContent(file.name, text);
 
-        // Only the 4 safe fields (see missingEnrichableFields/ENRICHABLE_FIELDS
-        // in logic.js) ever get AI-drafted — claims, sustainability, and
-        // tradeoffs are never touched here.
-        const byField = { idealFor: [], personas: [], useCases: [], benefits: [] };
+        // Every field in ENRICHABLE_FIELDS (logic.js) can get AI-drafted —
+        // includes claims/sustainability/tradeoffs/faqs per the user's
+        // explicit request for this demo catalog (see logic.js comment).
+        const byField = Object.fromEntries(ENRICHABLE_FIELDS.map((field) => [field, []]));
         let productsEnrichedCount = 0;
 
         const enrichedProducts = await Promise.all(imported.map(async (product) => {
@@ -186,9 +187,12 @@ export function AgentReadyProvider({ children }) {
             const updated = { ...product };
             let touchedAny = false;
             for (const field of missing) {
-              const values = enrichment[field];
-              if (Array.isArray(values) && values.length) {
-                updated[field] = values;
+              const value = enrichment[field];
+              const isFilled = field === "sustainability"
+                ? value && typeof value.score === "number"
+                : Array.isArray(value) && value.length;
+              if (isFilled) {
+                updated[field] = value;
                 byField[field].push({ productId: product.id, productName: `${product.brand} ${product.name}` });
                 touchedAny = true;
               }
@@ -243,7 +247,11 @@ export function AgentReadyProvider({ children }) {
       const fieldsToClear = clearsByProduct[product.id];
       if (!fieldsToClear) return product;
       const cleared = { ...product };
-      fieldsToClear.forEach((field) => { cleared[field] = []; });
+      fieldsToClear.forEach((field) => {
+        cleared[field] = field === "sustainability"
+          ? { score: 40, detail: "No sustainability context imported." }
+          : [];
+      });
       return cleared;
     }));
     setImportSummary(null);

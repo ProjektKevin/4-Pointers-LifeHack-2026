@@ -10,6 +10,7 @@ const TITLES = {
   "/": "Command center",
   "/catalog": "Product knowledge",
   "/insights": "Intent insights",
+  "/publish": "Publish",
 };
 
 export default function AgentReadyLayout() {
